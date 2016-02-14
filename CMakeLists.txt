@@ -17,7 +17,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 ROOT_GENERATE_DICTIONARY(calibmonDict calibmon.h LINKDEF calibmonLinkDef.h)
 
 # --- Create a shared library with generated dictionary
-add_library(calibmon SHARED calibmon.cxx calibmonDict.cxx KeyPress.cxx KeyPressTimer.cxx)
+add_library(calibmon SHARED calibmon.cxx calibmonDict.cxx KeyPress.cxx KeyPressTimer.cxx TermIoHandler.cxx)
 # message(ROOT_LIBRARIES " " ${ROOT_LIBRARIES})
 target_link_libraries(calibmon ${ROOT_LIBRARIES})
 
