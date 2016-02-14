@@ -10,7 +10,7 @@
 #include <TKey.h>
 #include <TROOT.h>
 #include <TH1.h>
-#include <TH2.h>
+#include <TProfile.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TLeaf.h>
@@ -53,7 +53,8 @@ public:
   static TList         *fSockThreads;   // socket threads (not used yet)
   static KeyPressTimer *fKeyPressTimer;
   
-  static TH1F          *fHist1;       // 1-D histogram
+  static TH1F          *fHistSignal;       // distribution of signal
+  static TProfile      *fHistSignalProf;   // signal profile over time
   
   static void run_thread(void *arg);
   static void root_server_thread(void *arg);

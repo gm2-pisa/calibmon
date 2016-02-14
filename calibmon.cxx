@@ -28,7 +28,9 @@ TThread       *calibmon::fRunThread;
 TMonitor      *calibmon::fMon;
 TList         *calibmon::fSockThreads;
 KeyPressTimer *calibmon::fKeyPressTimer;
-TH1F          *calibmon::fHist1;
+
+TH1F          *calibmon::fHistSignal;
+TProfile      *calibmon::fHistSignalProf;
 
 KeyPressTimer *calibmon::GetKeyPressTimer()
 {
@@ -245,9 +247,20 @@ void calibmon::begin(int pServPort)
   fFolderStack = new TObjArray();
   gROOT->GetListOfBrowsables()->Add(calibmon::fFolder, "histos");
 
-  fHist1 = new TH1F("hist1", "histogram #1", 100, -4, 4);
-  fFolder->Add(fHist1);
-
+  fHistSignal = new TH1F("Signal", "Signal distribution", 100, -4, 4);
+  fHistSignal->SetYTitle("events");
+  fHistSignal->SetXTitle("ADC counts");
+  fFolder->Add(fHistSignal);
+  
+  const Int_t kSignalProfChannels(100);
+  const Double_t kSignalProfMaxTime(1000);
+  fHistSignalProf = 
+    new TProfile("SignalProf", "Signal average vs. time",
+		 kSignalProfChannels, -kSignalProfMaxTime/25, kSignalProfMaxTime);
+  fHistSignalProf->SetYTitle("ADC counts");
+  fHistSignalProf->SetXTitle("event number");
+  fFolder->Add(fHistSignalProf);
+  
   printf("Root server listening on port %d\n", fServPort);
   fServThread = new TThread("Calibmon_Histo_Server", root_socket_server, &fServPort);
   fServThread->Run();
@@ -259,10 +272,18 @@ void calibmon::run()
   
   KeyPressTimer kpt(100, '!', 0);
   printf("Press '!' to quit\n", fServPort);
-  while(kpt.KeepGoing()) {
-    Float_t val;
-    val = gRandom->Gaus();
-    fHist1->Fill(val);
+  
+  for(UInt_t evNum(0); kpt.KeepGoing(); evNum++) {
+    Float_t val(gRandom->Gaus());
+    fHistSignal->Fill(val);
+
+    Double_t evNumD(evNum);
+    if (evNumD > 0.90* fHistSignalProf->GetXaxis()->GetXmax()) {
+      // printf("%g %g\n", evNumD, fHistSignalProf->GetXaxis()->GetXmax());
+      fHistSignalProf->LabelsInflate();
+      fHistSignalProf->Rebin(2);
+    }
+    fHistSignalProf->Fill(evNumD, val);
     
     gSystem->ProcessEvents();
     gSystem->Sleep(1);
@@ -272,7 +293,7 @@ void calibmon::run()
 void calibmon::end()
 {
   delete fServThread;
-  delete fHist1;
+  delete fHistSignal;
   delete fFolderStack;
   delete fKeyPressTimer;
   if (fAppDelete) delete fApp;
