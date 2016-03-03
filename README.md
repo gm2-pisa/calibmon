@@ -1,10 +1,10 @@
-##--- compile
+## compile
 
 cd build
 cmake ..
 make
 
-##--- execute
+## execute
 
 build/calibmonrun
 
